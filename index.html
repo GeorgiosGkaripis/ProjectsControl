@@ -1,0 +1,1287 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project Management Dashboard — GeorgiosGkaripis</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap');
+
+        :root {
+            --blue: #1a56db;
+            --blue-light: #3b82f6;
+            --blue-pale: #eff6ff;
+            --orange: #f97316;
+            --orange-pale: #fff7ed;
+            --green: #16a34a;
+            --green-pale: #f0fdf4;
+            --red: #dc2626;
+            --red-pale: #fef2f2;
+            --yellow: #d97706;
+            --yellow-pale: #fffbeb;
+            --bg: #f1f5f9;
+            --surface: #ffffff;
+            --border: #e2e8f0;
+            --text: #0f172a;
+            --text-muted: #64748b;
+            --text-light: #94a3b8;
+            --radius: 12px;
+            --shadow: 0 1px 3px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.04);
+            --shadow-md: 0 4px 12px rgba(0,0,0,0.1), 0 1px 4px rgba(0,0,0,0.06);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        /* ── SIDEBAR ── */
+        .app-shell { display: flex; min-height: 100vh; }
+
+        .sidebar {
+            width: 260px;
+            min-height: 100vh;
+            background: var(--text);
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            top: 0; left: 0;
+            z-index: 100;
+        }
+
+        .sidebar-logo {
+            padding: 28px 24px 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+        }
+
+        .sidebar-logo h2 {
+            font-size: 15px;
+            font-weight: 700;
+            letter-spacing: 0.02em;
+            color: #fff;
+        }
+
+        .sidebar-logo span {
+            font-size: 12px;
+            color: rgba(255,255,255,0.45);
+            font-weight: 400;
+        }
+
+        .sidebar-nav {
+            padding: 16px 12px;
+            flex: 1;
+        }
+
+        .nav-label {
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            color: rgba(255,255,255,0.3);
+            text-transform: uppercase;
+            padding: 8px 12px 6px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            color: rgba(255,255,255,0.65);
+            transition: all 0.15s;
+            margin-bottom: 2px;
+            border: none;
+            background: none;
+            width: 100%;
+            text-align: left;
+        }
+
+        .nav-item:hover { background: rgba(255,255,255,0.08); color: #fff; }
+        .nav-item.active { background: var(--blue); color: #fff; }
+
+        .nav-item .icon { font-size: 16px; width: 20px; text-align: center; }
+        .nav-badge {
+            margin-left: auto;
+            background: var(--orange);
+            color: #fff;
+            font-size: 10px;
+            font-weight: 700;
+            padding: 1px 6px;
+            border-radius: 10px;
+        }
+
+        .sidebar-footer {
+            padding: 16px 24px;
+            border-top: 1px solid rgba(255,255,255,0.08);
+            font-size: 12px;
+            color: rgba(255,255,255,0.3);
+        }
+
+        /* ── MAIN ── */
+        .main {
+            margin-left: 260px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            transition: all 0.15s;
+            font-family: inherit;
+        }
+
+        .btn-primary { background: var(--blue); color: #fff; }
+        .btn-primary:hover { background: #1640b0; }
+        .btn-ghost { background: transparent; color: var(--text-muted); border: 1px solid var(--border); }
+        .btn-ghost:hover { background: var(--bg); }
+        .btn-danger { background: var(--red); color: #fff; }
+        .btn-danger:hover { background: #b91c1c; }
+        .btn-sm { padding: 5px 10px; font-size: 12px; }
+
+        .content { padding: 28px 32px; }
+
+        /* ── VIEWS ── */
+        .view { display: none; }
+        .view.active { display: block; }
+
+        /* ── STATS ── */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 12px;
+            margin-bottom: 28px;
+        }
+
+        .stat-card {
+            background: var(--surface);
+            border-radius: var(--radius);
+            padding: 14px 16px;
+            box-shadow: var(--shadow);
+            border-left: 4px solid transparent;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::after {
+            content: '';
+            position: absolute;
+            right: -10px;
+            top: -10px;
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            opacity: 0.06;
+        }
+
+        .stat-card.blue { border-left-color: var(--blue); }
+        .stat-card.blue::after { background: var(--blue); }
+        .stat-card.orange { border-left-color: var(--orange); }
+        .stat-card.orange::after { background: var(--orange); }
+        .stat-card.green { border-left-color: var(--green); }
+        .stat-card.green::after { background: var(--green); }
+        .stat-card.red { border-left-color: var(--red); }
+        .stat-card.red::after { background: var(--red); }
+        .stat-card.purple { border-left-color: #7c3aed; }
+        .stat-card.purple::after { background: #7c3aed; }
+
+        .stat-label { font-size: 10px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px; }
+        .stat-value { font-size: 28px; font-weight: 700; line-height: 1; margin-bottom: 4px; }
+        .stat-sub { font-size: 11px; color: var(--text-light); }
+
+        /* ── SECTION HEADER ── */
+        .section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+
+        .section-title { font-size: 16px; font-weight: 700; }
+
+        /* ── PROJECT TABLE ── */
+        .table-wrap {
+            background: var(--surface);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            margin-bottom: 28px;
+        }
+
+        table { width: 100%; border-collapse: collapse; }
+        thead { background: var(--bg); }
+
+        th {
+            text-align: left;
+            padding: 11px 16px;
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.07em;
+            border-bottom: 1px solid var(--border);
+        }
+
+        td {
+            padding: 13px 16px;
+            font-size: 14px;
+            border-bottom: 1px solid var(--border);
+            vertical-align: middle;
+        }
+
+        tr:last-child td { border-bottom: none; }
+        tr:hover td { background: #fafbfc; }
+
+        .project-name { font-weight: 600; }
+        .project-client { font-size: 12px; color: var(--text-muted); }
+
+        /* ── PROGRESS BAR ── */
+        .progress-wrap { min-width: 120px; }
+        .progress-bar {
+            height: 6px;
+            background: var(--border);
+            border-radius: 99px;
+            overflow: hidden;
+            margin-top: 4px;
+        }
+        .progress-fill { height: 100%; border-radius: 99px; transition: width 0.4s; }
+
+        /* ── BADGES ── */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 3px 9px;
+            border-radius: 99px;
+            font-size: 11px;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .badge-blue { background: var(--blue-pale); color: var(--blue); }
+        .badge-orange { background: var(--orange-pale); color: var(--orange); }
+        .badge-green { background: var(--green-pale); color: var(--green); }
+        .badge-red { background: var(--red-pale); color: var(--red); }
+        .badge-yellow { background: var(--yellow-pale); color: var(--yellow); }
+
+        /* ── MODAL ── */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 200;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-overlay.open { display: flex; }
+
+        .modal {
+            background: var(--surface);
+            border-radius: 16px;
+            width: 560px;
+            max-width: 95vw;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: var(--shadow-md);
+            animation: modalIn 0.2s ease;
+        }
+
+        @keyframes modalIn {
+            from { transform: translateY(12px) scale(0.98); opacity: 0; }
+            to { transform: translateY(0) scale(1); opacity: 1; }
+        }
+
+        .modal-header {
+            padding: 24px 24px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .modal-title { font-size: 17px; font-weight: 700; }
+        .modal-close { background: none; border: none; font-size: 20px; cursor: pointer; color: var(--text-muted); padding: 4px; }
+        .modal-body { padding: 20px 24px; }
+        .modal-footer { padding: 16px 24px; border-top: 1px solid var(--border); display: flex; gap: 10px; justify-content: flex-end; }
+
+        /* ── FORM ── */
+        .form-row { margin-bottom: 16px; }
+        .form-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 16px; }
+
+        label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 5px; color: var(--text); }
+
+        input[type="text"], input[type="date"], input[type="number"], textarea, select {
+            width: 100%;
+            padding: 9px 12px;
+            border: 1.5px solid var(--border);
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+            color: var(--text);
+            background: var(--surface);
+            transition: border-color 0.15s;
+            outline: none;
+        }
+
+        input:focus, textarea:focus, select:focus { border-color: var(--blue); }
+        textarea { resize: vertical; min-height: 80px; }
+
+        /* ── TASKS ── */
+        .task-list { list-style: none; }
+
+        .task-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            margin-bottom: 8px;
+            background: var(--surface);
+            transition: box-shadow 0.15s;
+        }
+
+        .task-item:hover { box-shadow: var(--shadow); }
+
+        .task-check {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            border: 2px solid var(--border);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            transition: all 0.15s;
+        }
+
+        .task-check.done { background: var(--green); border-color: var(--green); color: #fff; font-size: 10px; }
+
+        .task-text { flex: 1; font-size: 14px; }
+        .task-text.done { text-decoration: line-through; color: var(--text-muted); }
+        .task-meta { font-size: 12px; color: var(--text-light); }
+
+        /* ── EMPTY STATE ── */
+        .empty {
+            text-align: center;
+            padding: 48px 24px;
+            color: var(--text-muted);
+        }
+        .empty-icon { font-size: 48px; margin-bottom: 12px; }
+        .empty h3 { font-size: 16px; font-weight: 600; margin-bottom: 6px; }
+        .empty p { font-size: 14px; }
+
+        /* ── TIMELINE ── */
+        .timeline-list { list-style: none; }
+
+        .timeline-item {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .timeline-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-top: 4px;
+            flex-shrink: 0;
+        }
+
+        .timeline-line-wrap {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .timeline-line {
+            width: 2px;
+            flex: 1;
+            background: var(--border);
+            margin-top: 4px;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ── PRINT ── */
+        @media print {
+            .sidebar, .topbar, .btn, .modal-overlay { display: none !important; }
+            .main { margin-left: 0; }
+            body { background: white; }
+            .stat-card, .table-wrap { box-shadow: none; }
+        }
+
+        /* ── SEARCH ── */
+        .search-box {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--bg);
+            border: 1.5px solid var(--border);
+            border-radius: 8px;
+            padding: 7px 12px;
+            font-size: 14px;
+            color: var(--text-muted);
+            cursor: text;
+        }
+
+        .search-box input {
+            border: none;
+            background: none;
+            outline: none;
+            font-size: 14px;
+            width: 180px;
+            font-family: inherit;
+        }
+
+        /* Action icons */
+        .action-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 4px 6px;
+            border-radius: 6px;
+            color: var(--text-muted);
+            font-size: 14px;
+            transition: all 0.15s;
+        }
+
+        .action-btn:hover { background: var(--bg); color: var(--text); }
+        .action-btn.del:hover { background: var(--red-pale); color: var(--red); }
+
+        /* ── GANTT ── */
+        .gantt-wrap {
+            background: var(--surface);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            margin-bottom: 28px;
+        }
+
+        .gantt-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border);
+            font-weight: 700;
+            font-size: 15px;
+        }
+
+        .gantt-row {
+            display: flex;
+            align-items: center;
+            padding: 12px 20px;
+            border-bottom: 1px solid var(--border);
+            gap: 16px;
+        }
+
+        .gantt-row:last-child { border-bottom: none; }
+
+        .gantt-label { width: 200px; font-size: 13px; font-weight: 500; flex-shrink: 0; }
+        .gantt-track { flex: 1; background: var(--bg); border-radius: 4px; height: 18px; position: relative; overflow: hidden; }
+        .gantt-fill {
+            height: 100%;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            padding: 0 6px;
+            font-size: 10px;
+            font-weight: 700;
+            color: #fff;
+            white-space: nowrap;
+            overflow: hidden;
+        }
+
+        .gantt-pct { width: 40px; font-size: 12px; color: var(--text-muted); text-align: right; font-family: 'DM Mono', monospace; }
+
+        /* ── NOTES ── */
+        .notes-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            gap: 16px;
+        }
+
+        .note-card {
+            background: var(--surface);
+            border-radius: var(--radius);
+            padding: 18px;
+            box-shadow: var(--shadow);
+            border-top: 4px solid var(--blue);
+            position: relative;
+        }
+
+        .note-card .note-date { font-size: 11px; color: var(--text-light); margin-bottom: 8px; }
+        .note-card .note-text { font-size: 13px; line-height: 1.6; }
+        .note-card .note-actions { margin-top: 12px; display: flex; gap: 6px; }
+    </style>
+</head>
+<body>
+
+<div class="app-shell">
+
+    <!-- ═══ SIDEBAR ═══ -->
+    <nav class="sidebar">
+        <div class="sidebar-logo">
+            <h2>Πίνακας ελέγχου έργου</h2>
+            <span>Γκαρίπης Γιώργος</span>
+        </div>
+        <div class="sidebar-nav">
+            <div class="nav-label">Κύρια Μενού</div>
+            <button class="nav-item active" onclick="navigate('dashboard', this)">
+                <span class="icon">📊</span> Επισκόπηση
+            </button>
+            <button class="nav-item" onclick="navigate('projects', this)">
+                <span class="icon">🏗️</span> Έργα
+                <span class="nav-badge" id="nav-badge-projects">0</span>
+            </button>
+            <button class="nav-item" onclick="navigate('tasks', this)">
+                <span class="icon">✅</span> Εργασίες
+                <span class="nav-badge" id="nav-badge-tasks">0</span>
+            </button>
+            <button class="nav-item" onclick="navigate('timeline', this)">
+                <span class="icon">📅</span> Χρονοδιάγραμμα
+            </button>
+            <div class="nav-label" style="margin-top:16px;">Βοηθητικά</div>
+            <button class="nav-item" onclick="navigate('notes', this)">
+                <span class="icon">📝</span> Σημειώσεις
+            </button>
+            <button class="nav-item" onclick="window.print()">
+                <span class="icon">🖨️</span> Εκτύπωση / PDF
+            </button>
+            <button class="nav-item" onclick="saveAsFile()">
+                <span class="icon">💾</span> Αποθήκευση Αρχείου
+            </button>
+        </div>
+        <div class="sidebar-footer" style="line-height:1.7;">
+            <span style="display:inline-flex;align-items:center;gap:0px;vertical-align:baseline;font-size:11px;">&copy;&reg;</span>&thinsp;GeorgiosGkaripis<br>
+            Με επιφύλαξη παντός δικαιώματος.
+        </div>
+    </nav>
+
+    <!-- ═══ MAIN ═══ -->
+    <div class="main">
+        <!-- CONTENT -->
+        <div class="content">
+
+            <!-- ─── DASHBOARD VIEW ─── -->
+            <div class="view active" id="view-dashboard">
+                <div class="stats-grid" id="stats-grid"></div>
+
+                <div class="section-header">
+                    <div class="section-title">Πρόσφατα Έργα</div>
+                </div>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Έργο</th>
+                                <th>Κατάσταση</th>
+                                <th>Πρόοδος</th>
+                                <th>Ημ/νία Λήξης</th>
+                            </tr>
+                        </thead>
+                        <tbody id="dashboard-projects-tbody"></tbody>
+                    </table>
+                </div>
+
+                <div class="gantt-wrap">
+                    <div class="gantt-header">📊 Πρόοδος Έργων</div>
+                    <div id="gantt-body"></div>
+                </div>
+            </div>
+
+            <!-- ─── PROJECTS VIEW ─── -->
+            <div class="view" id="view-projects">
+                <div class="section-header" style="margin-bottom:16px;">
+                    <div class="section-title">Έργα</div>
+                    <button class="btn btn-primary" onclick="openProjectModal()">+ Νέο Έργο</button>
+                </div>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Έργο / Πελάτης</th>
+                                <th>Κατηγορία</th>
+                                <th>Κατάσταση</th>
+                                <th>Πρόοδος</th>
+                                <th>Ημ/νία Λήξης</th>
+                                <th>Προϋπολογισμός</th>
+                                <th>Ενέργειες</th>
+                            </tr>
+                        </thead>
+                        <tbody id="projects-tbody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- ─── TASKS VIEW ─── -->
+            <div class="view" id="view-tasks">
+                <div class="section-header" style="margin-bottom:16px;">
+                    <div class="section-title">Εργασίες</div>
+                    <button class="btn btn-primary" onclick="openTaskModal()">+ Νέα Εργασία</button>
+                </div>
+                <ul class="task-list" id="tasks-list"></ul>
+            </div>
+
+            <!-- ─── TIMELINE VIEW ─── -->
+            <div class="view" id="view-timeline">
+                <div class="gantt-wrap">
+                    <div class="gantt-header">📅 Χρονοδιάγραμμα Έργων</div>
+                    <div id="timeline-body"></div>
+                </div>
+            </div>
+
+            <!-- ─── NOTES VIEW ─── -->
+            <div class="view" id="view-notes">
+                <div class="section-header" style="margin-bottom:16px;">
+                    <div class="section-title">Σημειώσεις</div>
+                    <button class="btn btn-primary" onclick="openNoteModal()">+ Νέα Σημείωση</button>
+                </div>
+                <div class="notes-grid" id="notes-grid"></div>
+            </div>
+
+        </div><!-- /content -->
+    </div><!-- /main -->
+</div><!-- /app-shell -->
+
+<!-- ═══ MODALS ═══ -->
+
+<!-- PROJECT MODAL -->
+<div class="modal-overlay" id="project-modal">
+    <div class="modal">
+        <div class="modal-header">
+            <div class="modal-title" id="project-modal-title">Νέο Έργο</div>
+            <button class="modal-close" onclick="closeModal('project-modal')">✕</button>
+        </div>
+        <div class="modal-body">
+            <div class="form-row">
+                <label>Τίτλος Έργου *</label>
+                <input type="text" id="p-title" placeholder="π.χ. Κατοικία Κολωνακίου">
+            </div>
+            <div class="form-row-2">
+                <div>
+                    <label>Πελάτης</label>
+                    <input type="text" id="p-client" placeholder="Ονοματεπώνυμο / Εταιρεία">
+                </div>
+                <div>
+                    <label>Κατηγορία</label>
+                    <select id="p-category">
+                        <option>Κατοικία</option>
+                        <option>Εμπορικό</option>
+                        <option>Βιομηχανικό</option>
+                        <option>Δημόσιο</option>
+                        <option>Ανακαίνιση</option>
+                        <option>Μελέτη</option>
+                        <option>Άλλο</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-row-2">
+                <div>
+                    <label>Ημ. Έναρξης</label>
+                    <input type="date" id="p-start">
+                </div>
+                <div>
+                    <label>Ημ. Λήξης</label>
+                    <input type="date" id="p-end">
+                </div>
+            </div>
+            <div class="form-row-2">
+                <div>
+                    <label>Κατάσταση</label>
+                    <select id="p-status">
+                        <option value="Σχεδιασμός">🔵 Σχεδιασμός</option>
+                        <option value="Σε εξέλιξη">🟠 Σε εξέλιξη</option>
+                        <option value="Σε παύση">🟡 Σε παύση</option>
+                        <option value="Ολοκληρωμένο">🟢 Ολοκληρωμένο</option>
+                        <option value="Ακυρωμένο">🔴 Ακυρωμένο</option>
+                    </select>
+                </div>
+                <div>
+                    <label>Πρόοδος (%)</label>
+                    <input type="number" id="p-progress" min="0" max="100" value="0">
+                </div>
+            </div>
+            <div class="form-row">
+                <label>Προϋπολογισμός (€)</label>
+                <input type="number" id="p-budget" placeholder="0">
+            </div>
+            <div class="form-row">
+                <label>Σημειώσεις</label>
+                <textarea id="p-notes" placeholder="Περιγραφή, παρατηρήσεις..."></textarea>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-ghost" onclick="closeModal('project-modal')">Ακύρωση</button>
+            <button class="btn btn-primary" onclick="saveProject()">Αποθήκευση</button>
+        </div>
+    </div>
+</div>
+
+<!-- TASK MODAL -->
+<div class="modal-overlay" id="task-modal">
+    <div class="modal">
+        <div class="modal-header">
+            <div class="modal-title">Νέα Εργασία</div>
+            <button class="modal-close" onclick="closeModal('task-modal')">✕</button>
+        </div>
+        <div class="modal-body">
+            <div class="form-row">
+                <label>Τίτλος Εργασίας *</label>
+                <input type="text" id="t-title" placeholder="π.χ. Σχεδιασμός κατόψεων">
+            </div>
+            <div class="form-row">
+                <label>Έργο</label>
+                <select id="t-project"></select>
+            </div>
+            <div class="form-row-2">
+                <div>
+                    <label>Προθεσμία</label>
+                    <input type="date" id="t-due">
+                </div>
+                <div>
+                    <label>Προτεραιότητα</label>
+                    <select id="t-priority">
+                        <option value="Χαμηλή">Χαμηλή</option>
+                        <option value="Μέτρια" selected>Μέτρια</option>
+                        <option value="Υψηλή">Υψηλή</option>
+                        <option value="Κρίσιμη">Κρίσιμη</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-row">
+                <label>Σημειώσεις</label>
+                <textarea id="t-notes" placeholder="Λεπτομέρειες..."></textarea>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-ghost" onclick="closeModal('task-modal')">Ακύρωση</button>
+            <button class="btn btn-primary" onclick="saveTask()">Αποθήκευση</button>
+        </div>
+    </div>
+</div>
+
+<!-- NOTE MODAL -->
+<div class="modal-overlay" id="note-modal">
+    <div class="modal" style="width:420px">
+        <div class="modal-header">
+            <div class="modal-title">Νέα Σημείωση</div>
+            <button class="modal-close" onclick="closeModal('note-modal')">✕</button>
+        </div>
+        <div class="modal-body">
+            <div class="form-row">
+                <label>Κείμενο Σημείωσης</label>
+                <textarea id="n-text" style="min-height:120px" placeholder="Γράψε τη σημείωσή σου..."></textarea>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-ghost" onclick="closeModal('note-modal')">Ακύρωση</button>
+            <button class="btn btn-primary" onclick="saveNote()">Αποθήκευση</button>
+        </div>
+    </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════
+// DATA STORE (localStorage)
+// ═══════════════════════════════════════
+
+const KEYS = { projects: 'pm_projects', tasks: 'pm_tasks', notes: 'pm_notes' };
+
+function load(key) {
+    try { return JSON.parse(localStorage.getItem(key)) || []; } catch { return []; }
+}
+
+function save(key, data) {
+    localStorage.setItem(key, JSON.stringify(data));
+}
+
+let projects = load(KEYS.projects);
+let tasks = load(KEYS.tasks);
+let notes = load(KEYS.notes);
+
+// Seed demo data if empty
+if (projects.length === 0) {
+    projects = [
+        { id: uid(), title: 'Μονοκατοικία Χαλκιδικής', client: 'Παπαδόπουλος Ν.', category: 'Κατοικία', start: '2025-01-10', end: '2025-09-30', status: 'Σε εξέλιξη', progress: 65, budget: 280000, notes: 'Ισόγειο + 1ος όροφος, πισίνα' },
+        { id: uid(), title: 'Εμπορικό Κέντρο Θεσσαλονίκης', client: 'Alpha Constructions', category: 'Εμπορικό', start: '2024-11-01', end: '2026-06-30', status: 'Σε εξέλιξη', progress: 30, budget: 1500000, notes: '' },
+        { id: uid(), title: 'Ανακαίνιση Γραφείων', client: 'Δήμος Θεσσαλονίκης', category: 'Δημόσιο', start: '2025-03-01', end: '2025-07-31', status: 'Σχεδιασμός', progress: 10, budget: 95000, notes: 'Υπόγειο & ισόγειο Δημαρχείου' },
+        { id: uid(), title: 'Βιομηχανική Αποθήκη', client: 'Logistics Pro AE', category: 'Βιομηχανικό', start: '2024-06-01', end: '2025-02-28', status: 'Ολοκληρωμένο', progress: 100, budget: 420000, notes: '' },
+    ];
+    save(KEYS.projects, projects);
+}
+
+if (tasks.length === 0) {
+    const pid = projects[0]?.id;
+    tasks = [
+        { id: uid(), title: 'Αρχιτεκτονική μελέτη κατόψεων', project: pid, due: '2025-04-15', priority: 'Υψηλή', notes: '', done: false },
+        { id: uid(), title: 'Στατική μελέτη φέροντος οργανισμού', project: pid, due: '2025-05-01', priority: 'Κρίσιμη', notes: '', done: false },
+        { id: uid(), title: 'Έκδοση οικοδομικής άδειας', project: pid, due: '2025-03-20', priority: 'Μέτρια', notes: '', done: true },
+        { id: uid(), title: 'Τοπογραφική αποτύπωση', project: projects[1]?.id, due: '2025-02-28', priority: 'Υψηλή', notes: '', done: true },
+    ];
+    save(KEYS.tasks, tasks);
+}
+
+function uid() { return Math.random().toString(36).slice(2,10); }
+
+// ═══════════════════════════════════════
+// NAVIGATION
+// ═══════════════════════════════════════
+
+let currentView = 'dashboard';
+
+function navigate(view, el) {
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+    document.getElementById('view-' + view).classList.add('active');
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    if (el) el.classList.add('active');
+    currentView = view;
+
+    render();
+}
+
+
+// ═══════════════════════════════════════
+// RENDER
+// ═══════════════════════════════════════
+
+function render() {
+    updateBadges();
+    if (currentView === 'dashboard') renderDashboard();
+    else if (currentView === 'projects') renderProjects();
+    else if (currentView === 'tasks') renderTasks();
+    else if (currentView === 'timeline') renderTimeline();
+    else if (currentView === 'notes') renderNotes();
+}
+
+function updateBadges() {
+    document.getElementById('nav-badge-projects').textContent = projects.length;
+    document.getElementById('nav-badge-tasks').textContent = tasks.filter(t => !t.done).length;
+}
+
+// ── STATUS BADGE ──
+const STATUS_CLASSES = {
+    'Σχεδιασμός': 'badge-blue',
+    'Σε εξέλιξη': 'badge-orange',
+    'Σε παύση': 'badge-yellow',
+    'Ολοκληρωμένο': 'badge-green',
+    'Ακυρωμένο': 'badge-red',
+};
+
+const STATUS_COLORS = {
+    'Σχεδιασμός': '#1a56db',
+    'Σε εξέλιξη': '#f97316',
+    'Σε παύση': '#d97706',
+    'Ολοκληρωμένο': '#16a34a',
+    'Ακυρωμένο': '#dc2626',
+};
+
+const PRIORITY_CLASSES = {
+    'Χαμηλή': 'badge-blue',
+    'Μέτρια': 'badge-yellow',
+    'Υψηλή': 'badge-orange',
+    'Κρίσιμη': 'badge-red',
+};
+
+function statusBadge(s) {
+    return `<span class="badge ${STATUS_CLASSES[s] || 'badge-blue'}">${s}</span>`;
+}
+
+function progressBar(pct, color) {
+    color = color || '#1a56db';
+    return `<div class="progress-wrap">
+        <span style="font-size:12px;font-weight:600;color:var(--text-muted)">${pct}%</span>
+        <div class="progress-bar"><div class="progress-fill" style="width:${pct}%;background:${color}"></div></div>
+    </div>`;
+}
+
+// ── DASHBOARD ──
+function renderDashboard() {
+    const total = projects.length;
+    const active = projects.filter(p => p.status === 'Σε εξέλιξη').length;
+    const done = projects.filter(p => p.status === 'Ολοκληρωμένο').length;
+    const pendingTasks = tasks.filter(t => !t.done).length;
+    const designing = projects.filter(p => p.status === 'Σχεδιασμός').length;
+
+    document.getElementById('stats-grid').innerHTML = `
+        <div class="stat-card blue">
+            <div class="stat-label">Σύνολο Έργων</div>
+            <div class="stat-value">${total}</div>
+            <div class="stat-sub">Καταχωρημένα έργα</div>
+        </div>
+        <div class="stat-card purple">
+            <div class="stat-label">Σχεδιασμός</div>
+            <div class="stat-value">${designing}</div>
+            <div class="stat-sub">Σε φάση σχεδιασμού</div>
+        </div>
+        <div class="stat-card orange">
+            <div class="stat-label">Ενεργά Έργα</div>
+            <div class="stat-value">${active}</div>
+            <div class="stat-sub">Σε εξέλιξη αυτή τη στιγμή</div>
+        </div>
+        <div class="stat-card green">
+            <div class="stat-label">Ολοκληρωμένα</div>
+            <div class="stat-value">${done}</div>
+            <div class="stat-sub">Επιτυχώς παραδοθέντα</div>
+        </div>
+        <div class="stat-card red">
+            <div class="stat-label">Εκκρεμείς Εργασίες</div>
+            <div class="stat-value">${pendingTasks}</div>
+            <div class="stat-sub">Προς ολοκλήρωση</div>
+        </div>
+    `;
+
+    // Recent projects table
+    const rows = projects.slice(-5).reverse().map(p => `
+        <tr>
+            <td><div class="project-name">${p.title}</div><div class="project-client">${p.client}</div></td>
+            <td>${statusBadge(p.status)}</td>
+            <td>${progressBar(p.progress, STATUS_COLORS[p.status])}</td>
+            <td style="font-family:'DM Mono',monospace;font-size:13px">${p.end || '—'}</td>
+        </tr>
+    `).join('') || `<tr><td colspan="4"><div class="empty"><div class="empty-icon">🏗️</div><h3>Δεν υπάρχουν έργα</h3></div></td></tr>`;
+
+    document.getElementById('dashboard-projects-tbody').innerHTML = rows;
+
+    // Gantt
+    const ganttRows = projects.map(p => `
+        <div class="gantt-row">
+            <div class="gantt-label">${p.title}</div>
+            <div class="gantt-track">
+                <div class="gantt-fill" style="width:${p.progress}%;background:${STATUS_COLORS[p.status] || '#1a56db'}">${p.progress > 8 ? p.progress + '%' : ''}</div>
+            </div>
+            <div class="gantt-pct">${p.progress}%</div>
+        </div>
+    `).join('') || '<div style="padding:20px;color:var(--text-muted)">Δεν υπάρχουν δεδομένα</div>';
+    document.getElementById('gantt-body').innerHTML = ganttRows;
+}
+
+// ── PROJECTS ──
+function renderProjects(filter) {
+    let list = [...projects];
+    if (filter) list = list.filter(p => p.title.toLowerCase().includes(filter) || p.client.toLowerCase().includes(filter));
+    
+    const rows = list.map(p => `
+        <tr>
+            <td>
+                <div class="project-name">${p.title}</div>
+                <div class="project-client">${p.client}</div>
+            </td>
+            <td><span class="badge badge-blue">${p.category}</span></td>
+            <td>${statusBadge(p.status)}</td>
+            <td>${progressBar(p.progress, STATUS_COLORS[p.status])}</td>
+            <td style="font-family:'DM Mono',monospace;font-size:13px">${p.end || '—'}</td>
+            <td style="font-family:'DM Mono',monospace;font-size:13px">${p.budget ? '€' + Number(p.budget).toLocaleString('el-GR') : '—'}</td>
+            <td>
+                <button class="action-btn" onclick="editProject('${p.id}')" title="Επεξεργασία">✏️</button>
+                <button class="action-btn del" onclick="deleteProject('${p.id}')" title="Διαγραφή">🗑️</button>
+            </td>
+        </tr>
+    `).join('');
+
+    document.getElementById('projects-tbody').innerHTML = rows || `<tr><td colspan="7">
+        <div class="empty"><div class="empty-icon">🏗️</div><h3>Δεν υπάρχουν έργα</h3><p>Πατήστε "+ Νέο Έργο" για να ξεκινήσετε</p></div>
+    </td></tr>`;
+}
+
+// ── TASKS ──
+function renderTasks(filter) {
+    let list = [...tasks];
+    if (filter) list = list.filter(t => t.title.toLowerCase().includes(filter));
+
+    const html = list.map(t => {
+        const proj = projects.find(p => p.id === t.project);
+        return `
+            <li class="task-item">
+                <div class="task-check ${t.done ? 'done' : ''}" onclick="toggleTask('${t.id}')">${t.done ? '✓' : ''}</div>
+                <div style="flex:1">
+                    <div class="task-text ${t.done ? 'done' : ''}">${t.title}</div>
+                    ${proj ? `<div class="task-meta">📁 ${proj.title}</div>` : ''}
+                </div>
+                <span class="badge ${PRIORITY_CLASSES[t.priority] || 'badge-blue'}">${t.priority}</span>
+                ${t.due ? `<span style="font-size:12px;color:var(--text-muted);font-family:'DM Mono',monospace">${t.due}</span>` : ''}
+                <button class="action-btn del" onclick="deleteTask('${t.id}')">🗑️</button>
+            </li>
+        `;
+    }).join('') || `<div class="empty"><div class="empty-icon">✅</div><h3>Δεν υπάρχουν εργασίες</h3><p>Πατήστε "+ Νέα Εργασία" για να ξεκινήσετε</p></div>`;
+
+    document.getElementById('tasks-list').innerHTML = html;
+}
+
+// ── TIMELINE ──
+function renderTimeline() {
+    const sorted = [...projects].sort((a, b) => (a.end || '').localeCompare(b.end || ''));
+    const html = sorted.map(p => `
+        <div class="gantt-row">
+            <div class="gantt-label">
+                <div style="font-weight:600;font-size:13px">${p.title}</div>
+                <div style="font-size:11px;color:var(--text-muted)">${p.start || ''} → ${p.end || ''}</div>
+            </div>
+            <div class="gantt-track">
+                <div class="gantt-fill" style="width:${p.progress}%;background:${STATUS_COLORS[p.status] || '#1a56db'}">${p.progress > 8 ? p.progress + '%' : ''}</div>
+            </div>
+            <div>${statusBadge(p.status)}</div>
+        </div>
+    `).join('') || '<div style="padding:24px;color:var(--text-muted)">Χωρίς δεδομένα</div>';
+
+    document.getElementById('timeline-body').innerHTML = html;
+}
+
+// ── NOTES ──
+function renderNotes(filter) {
+    let list = [...notes];
+    if (filter) list = list.filter(n => n.text.toLowerCase().includes(filter));
+
+    const colors = ['#1a56db','#f97316','#16a34a','#8b5cf6','#dc2626'];
+    const html = list.map((n, i) => `
+        <div class="note-card" style="border-top-color:${colors[i % colors.length]}">
+            <div class="note-date">${n.date}</div>
+            <div class="note-text">${n.text.replace(/\n/g,'<br>')}</div>
+            <div class="note-actions">
+                <button class="action-btn del btn btn-sm" onclick="deleteNote('${n.id}')">🗑️ Διαγραφή</button>
+            </div>
+        </div>
+    `).join('') || `<div class="empty"><div class="empty-icon">📝</div><h3>Δεν υπάρχουν σημειώσεις</h3></div>`;
+
+    document.getElementById('notes-grid').innerHTML = html;
+}
+
+// ═══════════════════════════════════════
+// SEARCH
+// ═══════════════════════════════════════
+
+function onSearch(q) {
+    q = q.toLowerCase().trim();
+    if (currentView === 'projects') renderProjects(q);
+    else if (currentView === 'tasks') renderTasks(q);
+    else if (currentView === 'notes') renderNotes(q);
+}
+
+// ═══════════════════════════════════════
+// PROJECT CRUD
+// ═══════════════════════════════════════
+
+let editingProjectId = null;
+
+function openProjectModal(id) {
+    editingProjectId = id || null;
+    const modal = document.getElementById('project-modal');
+    document.getElementById('project-modal-title').textContent = id ? 'Επεξεργασία Έργου' : 'Νέο Έργο';
+
+    if (id) {
+        const p = projects.find(p => p.id === id);
+        document.getElementById('p-title').value = p.title;
+        document.getElementById('p-client').value = p.client;
+        document.getElementById('p-category').value = p.category;
+        document.getElementById('p-start').value = p.start;
+        document.getElementById('p-end').value = p.end;
+        document.getElementById('p-status').value = p.status;
+        document.getElementById('p-progress').value = p.progress;
+        document.getElementById('p-budget').value = p.budget;
+        document.getElementById('p-notes').value = p.notes;
+    } else {
+        ['p-title','p-client','p-start','p-end','p-notes'].forEach(id => document.getElementById(id).value = '');
+        document.getElementById('p-progress').value = 0;
+        document.getElementById('p-budget').value = '';
+        document.getElementById('p-status').value = 'Σχεδιασμός';
+    }
+
+    modal.classList.add('open');
+}
+
+function editProject(id) { openProjectModal(id); }
+
+function saveProject() {
+    const title = document.getElementById('p-title').value.trim();
+    if (!title) { alert('Παρακαλώ εισάγετε τίτλο έργου.'); return; }
+
+    const data = {
+        title,
+        client: document.getElementById('p-client').value.trim(),
+        category: document.getElementById('p-category').value,
+        start: document.getElementById('p-start').value,
+        end: document.getElementById('p-end').value,
+        status: document.getElementById('p-status').value,
+        progress: parseInt(document.getElementById('p-progress').value) || 0,
+        budget: parseFloat(document.getElementById('p-budget').value) || 0,
+        notes: document.getElementById('p-notes').value.trim(),
+    };
+
+    if (editingProjectId) {
+        const idx = projects.findIndex(p => p.id === editingProjectId);
+        projects[idx] = { ...projects[idx], ...data };
+    } else {
+        projects.push({ id: uid(), ...data });
+    }
+
+    save(KEYS.projects, projects);
+    closeModal('project-modal');
+    render();
+}
+
+function deleteProject(id) {
+    if (!confirm('Διαγραφή έργου;')) return;
+    projects = projects.filter(p => p.id !== id);
+    save(KEYS.projects, projects);
+    render();
+}
+
+// ═══════════════════════════════════════
+// TASK CRUD
+// ═══════════════════════════════════════
+
+function openTaskModal() {
+    const sel = document.getElementById('t-project');
+    sel.innerHTML = '<option value="">— Χωρίς έργο —</option>' + projects.map(p => `<option value="${p.id}">${p.title}</option>`).join('');
+    ['t-title','t-notes'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('t-due').value = '';
+    document.getElementById('t-priority').value = 'Μέτρια';
+    document.getElementById('task-modal').classList.add('open');
+}
+
+function saveTask() {
+    const title = document.getElementById('t-title').value.trim();
+    if (!title) { alert('Παρακαλώ εισάγετε τίτλο εργασίας.'); return; }
+
+    tasks.push({
+        id: uid(),
+        title,
+        project: document.getElementById('t-project').value,
+        due: document.getElementById('t-due').value,
+        priority: document.getElementById('t-priority').value,
+        notes: document.getElementById('t-notes').value.trim(),
+        done: false,
+    });
+
+    save(KEYS.tasks, tasks);
+    closeModal('task-modal');
+    render();
+}
+
+function toggleTask(id) {
+    const t = tasks.find(t => t.id === id);
+    if (t) t.done = !t.done;
+    save(KEYS.tasks, tasks);
+    render();
+}
+
+function deleteTask(id) {
+    tasks = tasks.filter(t => t.id !== id);
+    save(KEYS.tasks, tasks);
+    render();
+}
+
+// ═══════════════════════════════════════
+// NOTE CRUD
+// ═══════════════════════════════════════
+
+function openNoteModal() {
+    document.getElementById('n-text').value = '';
+    document.getElementById('note-modal').classList.add('open');
+}
+
+function saveNote() {
+    const text = document.getElementById('n-text').value.trim();
+    if (!text) return;
+    notes.unshift({ id: uid(), text, date: new Date().toLocaleDateString('el-GR') });
+    save(KEYS.notes, notes);
+    closeModal('note-modal');
+    render();
+}
+
+function deleteNote(id) {
+    notes = notes.filter(n => n.id !== id);
+    save(KEYS.notes, notes);
+    render();
+}
+
+// ═══════════════════════════════════════
+// MODAL HELPERS
+// ═══════════════════════════════════════
+
+function closeModal(id) {
+    document.getElementById(id).classList.remove('open');
+}
+
+// Close on overlay click
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+    overlay.addEventListener('click', function(e) {
+        if (e.target === this) this.classList.remove('open');
+    });
+});
+
+// ═══════════════════════════════════════
+// ΑΠΟΘΗΚΕΥΣΗ ΑΡΧΕΙΟΥ (Save As)
+// ═══════════════════════════════════════
+
+function saveAsFile() {
+    // Διαβάζουμε το τρέχον HTML του αρχείου
+    const html = document.documentElement.outerHTML;
+
+    // Ενσωματώνουμε τα τρέχοντα δεδομένα μέσα στο HTML
+    // ώστε το αρχείο να είναι αυτάρκες με τα δεδομένα της συνεδρίας
+    const dataScript = `<script id="__seed_data__">
+        (function() {
+            if (!localStorage.getItem('pm_projects')) {
+                localStorage.setItem('pm_projects', ${JSON.stringify(JSON.stringify(projects))});
+            }
+            if (!localStorage.getItem('pm_tasks')) {
+                localStorage.setItem('pm_tasks', ${JSON.stringify(JSON.stringify(tasks))});
+            }
+            if (!localStorage.getItem('pm_notes')) {
+                localStorage.setItem('pm_notes', ${JSON.stringify(JSON.stringify(notes))});
+            }
+        })();
+    <\/script>`;
+
+    // Εισάγουμε το script αμέσως μετά το <head>
+    const finalHtml = html.replace('<head>', '<head>' + dataScript);
+
+    const blob = new Blob([finalHtml], { type: 'text/html;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    const now = new Date();
+    const dateStr = now.toISOString().slice(0,10);
+    a.href = url;
+    a.download = `PinakasElegxou_${dateStr}.html`;
+    a.click();
+    URL.revokeObjectURL(url);
+
+    // Ειδοποίηση
+    const msg = document.createElement('div');
+    msg.style.cssText = 'position:fixed;bottom:24px;right:24px;background:#16a34a;color:#fff;padding:12px 20px;border-radius:10px;font-size:14px;font-weight:600;z-index:9999;box-shadow:0 4px 12px rgba(0,0,0,0.15);animation:fadeIn 0.2s ease';
+    msg.textContent = '✅ Το αρχείο αποθηκεύτηκε επιτυχώς!';
+    document.body.appendChild(msg);
+    setTimeout(() => msg.remove(), 3000);
+}
+
+// ═══════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════
+
+document.addEventListener('DOMContentLoaded', function() {
+    render();
+});
+</script>
+</body>
+</html>
